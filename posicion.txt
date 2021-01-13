@@ -1,0 +1,11 @@
+Seccion 9 - punto 7
+
+user: mean_user
+password: vBb2lZKmKLxpXcxC
+	AAAA
+
+
+----
+npm i mongoose
+npm i dotenv
+npm i cors
