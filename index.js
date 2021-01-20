@@ -2,32 +2,24 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 const {dbConnect} =  require('./db/config');
+//const port = 3005;
 
 //Crea servidor
 
 const app = express();
 
-app.use(express.urlencoded({ extended: true}));
-app.use(express.json());
-
 app.use(cors());
+
+//lectura y parseo del body
+app.use(express.json());
 
 dbConnect();
 
+//muestra el proceso por consola
 //console.log(process.env);
 
-//req request client
-//res response server
-app.post('/', (req,res) =>{
-
-    console.log(req.body)
-
-    res.json({
-        ok: true,
-        msg: 'hola mundo'
-    });
-
-});
+app.use('/api/usuarios',require('./routes/usuarios'));
+app.use('/api/login',require('./routes/auth'));
 
 //listo para peticiones
 app.listen(process.env.PORT, () =>{

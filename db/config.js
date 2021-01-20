@@ -1,10 +1,15 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 
+/*
+const user='mean_user';
+const passwd='AAAA';
+const url = 'mongodb+srv://'+user+':'+passwd+'@cluster0.ctjcn.mongodb.net/test';
+*/
 
 const dbConnect = async () =>{
     try{
-        mongoose.connect(process.env.URI, { 
+        mongoose.connect(process.env.URL, { 
             useNewUrlParser: true, 
             useUnifiedTopology: true,
             useCreateIndex:true
