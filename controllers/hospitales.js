@@ -1,61 +1,62 @@
 //const { model } = require("mongoose");
-const Usuario = require('../models/usuario');
+const Hospital = require('../models/hospitales');
 const {response} = require('express');
 const bcrypt = require('bcryptjs');
 //const { userInfo } = require("os");
 const {generateJWT} = require('../helpers/jwt');
 
-const getUsuarios = async(req,res) =>{
+const getHospitales = async(req,res) =>{
 
     //Muestra solicitud cliente
     console.log(req.body);
 
-    //busca todos los usuarios
-    const usuarios = await Usuario.find({},'nombre email role google img');
+    //busca todos los Hospitales
+    const hospitales = await Hospital.find({},'nombre calle img google');
 
     //respuesta servidor
     res.json({
         ok: true,               
-        usuarios: usuarios,
+        hospitales: hospitales,
+        img: req.img,
         uid: req.uid        
     });
 
 }
 
-const crearUsuario = async(req,res = response) =>{
+const crearHospitales = async(req,res = response) =>{
 
     //Muestra solicitud cliente
     console.log(req.body);
 
-    const {email, password}= req.body;
+    const {calle, password, img}= req.body;
     
     try {
 
-        const nuevoUsuario = await Usuario.findOne({email});
+        const nuevoHospital = await Hospital.findOne({calle});
 
-        if (nuevoUsuario) {
+        if (nuevoHospital) {
             return res.status(400).json({
                 ok: false,
-                msg:"El correo ya existe"
+                msg:"La calle ya existe"
             });
         }
 
-        const usuario = new Usuario (req.body);
+        const hospital = new Hospital (req.body);
 
         //encriptar contra
         const salt = bcrypt.genSaltSync();
-        usuario.password = bcrypt.hashSync(password,salt);
+        hospital.password = bcrypt.hashSync(password,salt);
 
-        //guardar usario
-        await usuario.save();
+        //guardar Hospital
+        await hospital.save();
 
         //token import
-        const token = await generateJWT(usuario.id);
+        const token = await generateJWT(hospital.id);
 
         //respuesta servidor
         res.json({
             ok: true,     
-            usuario: usuario,     //solo usuario
+            hospital: hospital,     //solo hospital
             msg: "la clave: " + token
         });
 
@@ -70,20 +71,20 @@ const crearUsuario = async(req,res = response) =>{
     
 }
 
-const actualizarUsuario = async(req, res = response) => {
+const actualizarHostpitales = async(req, res = response) => {
 
     const uid = req.params.header;    
 
     try {
 
-        const usuarioDB = await Usuario.findById(uid);
+        const hospitalDB = await Hospital.findById(uid);
         
 
-        //Comprueba si existe el usuario
-        if (!usuarioDB) {
+        //Comprueba si existe el hospital
+        if (!hospitalDB) {
             return res.status(404).json({
                 ok: false,
-                msg: "No tiene la autoridad para modicar otros usuarios"
+                msg: "No tiene la autoridad para modificar otros hospitales"
             });
         }
 
@@ -91,32 +92,32 @@ const actualizarUsuario = async(req, res = response) => {
         //Crea una constante de la solicitud
 
         //Extrae los campos solicitados
-        const {password,google,email,...campos} = req.body;
+        const {password,google,calle,...campos} = req.body;
 
         //comprueba si se cambia el email
-        if (usuarioDB.email !== email) {
+        if (hospitalDB.calle !== calle) {
             
-            const existeEmail = await Usuario.findOne({email});
-            if (existeEmail) {
+            const existeCalle = await hospital.findOne({calle});
+            if (existeCalle) {
                 return res.status(400).json({
                     ok: false,
-                    msg: "Ya existe un usuario con este email"
+                    msg: "Ya existe un hospital con esta calle"
                 });
             }
         }
 
         //Especifica el campo
-        campos.email = email;
+        campos.calle = calle;
 
         //Borra los campos solicitados
         /*delete campos.password;
         delete campos.google;*/
 
-        const usuarioActualizado = await Usuario.findByIdAndUpdate(uid,campos,{new: true});
+        const hospitalActualizado = await Hospital.findByIdAndUpdate(uid,campos,{new: true});
 
         res.json({
             ok: true,            
-            usuario: usuarioActualizado            
+            hospital: hospitalActualizado            
         });
         
     } catch (error) {
@@ -130,26 +131,26 @@ const actualizarUsuario = async(req, res = response) => {
 
 }
 
-const borrarUsuario = async(req,res = response) => {
+const borrarHospitales = async(req,res = response) => {
     const uid = req.params.id;        
 
     try {
 
-        const usuarioDB = await Usuario.findById(uid);        
+        const hospitalDB = await Hospital.findById(uid);        
 
-        //Comprueba si existe el usuario
-        if (!usuarioDB) {
+        //Comprueba si existe el hospital
+        if (!hospitalDB) {
             return res.status(404).json({
                 ok: false,
-                msg: "Este usuario no existe"
+                msg: "Este hospital no existe"
             });
         }
 
-        await Usuario.findOneAndDelete(uid);
+        await Hospital.findOneAndDelete(uid);
 
         res.json({
             ok: true,
-            msg: "usuario borrado",                      
+            msg: "hospital borrado",                      
 
         });
 
@@ -162,11 +163,9 @@ const borrarUsuario = async(req,res = response) => {
     }
 }
 
-
-
 module.exports={
-    getUsuarios,
-    crearUsuario,
-    actualizarUsuario,
-    borrarUsuario
+    getHospitales,
+    actualizarHostpitales,
+    crearHospitales,
+    borrarHospitales
 }

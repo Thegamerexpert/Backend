@@ -1,28 +1,28 @@
 //const { model } = require("mongoose");
-const Usuario = require('../models/usuario');
+const Medico = require('../models/medicos');
 const {response} = require('express');
 const bcrypt = require('bcryptjs');
 //const { userInfo } = require("os");
 const {generateJWT} = require('../helpers/jwt');
 
-const getUsuarios = async(req,res) =>{
+const getMedicos = async(req,res) =>{
 
     //Muestra solicitud cliente
     console.log(req.body);
 
-    //busca todos los usuarios
-    const usuarios = await Usuario.find({},'nombre email role google img');
+    //busca todos los medicos
+    const medicos = await Medico.find({},'nombre email role google img');
 
     //respuesta servidor
     res.json({
         ok: true,               
-        usuarios: usuarios,
+        medicos: medicos,
         uid: req.uid        
     });
 
 }
 
-const crearUsuario = async(req,res = response) =>{
+const crearMedico = async(req,res = response) =>{
 
     //Muestra solicitud cliente
     console.log(req.body);
@@ -31,31 +31,31 @@ const crearUsuario = async(req,res = response) =>{
     
     try {
 
-        const nuevoUsuario = await Usuario.findOne({email});
+        const nuevoMedico = await Medico.findOne({email});
 
-        if (nuevoUsuario) {
+        if (nuevoMedico) {
             return res.status(400).json({
                 ok: false,
                 msg:"El correo ya existe"
             });
         }
 
-        const usuario = new Usuario (req.body);
+        const medico = new Medico (req.body);
 
         //encriptar contra
         const salt = bcrypt.genSaltSync();
-        usuario.password = bcrypt.hashSync(password,salt);
+        medico.password = bcrypt.hashSync(password,salt);
 
-        //guardar usario
-        await usuario.save();
+        //guardar medico
+        await medico.save();
 
         //token import
-        const token = await generateJWT(usuario.id);
+        const token = await generateJWT(medico.id);
 
         //respuesta servidor
         res.json({
             ok: true,     
-            usuario: usuario,     //solo usuario
+            medico: medico,     //solo medico
             msg: "la clave: " + token
         });
 
@@ -70,20 +70,20 @@ const crearUsuario = async(req,res = response) =>{
     
 }
 
-const actualizarUsuario = async(req, res = response) => {
+const actualizarMedico = async(req, res = response) => {
 
     const uid = req.params.header;    
 
     try {
 
-        const usuarioDB = await Usuario.findById(uid);
+        const medicoDB = await Medico.findById(uid);
         
 
-        //Comprueba si existe el usuario
-        if (!usuarioDB) {
+        //Comprueba si existe el medico
+        if (!medicoDB) {
             return res.status(404).json({
                 ok: false,
-                msg: "No tiene la autoridad para modicar otros usuarios"
+                msg: "No tiene la autoridad para modicar otros medicos"
             });
         }
 
@@ -94,13 +94,13 @@ const actualizarUsuario = async(req, res = response) => {
         const {password,google,email,...campos} = req.body;
 
         //comprueba si se cambia el email
-        if (usuarioDB.email !== email) {
+        if (medicoDB.email !== email) {
             
-            const existeEmail = await Usuario.findOne({email});
+            const existeEmail = await medico.findOne({email});
             if (existeEmail) {
                 return res.status(400).json({
                     ok: false,
-                    msg: "Ya existe un usuario con este email"
+                    msg: "Ya existe un medico con este email"
                 });
             }
         }
@@ -112,11 +112,11 @@ const actualizarUsuario = async(req, res = response) => {
         /*delete campos.password;
         delete campos.google;*/
 
-        const usuarioActualizado = await Usuario.findByIdAndUpdate(uid,campos,{new: true});
+        const medicoActualizado = await medico.findByIdAndUpdate(uid,campos,{new: true});
 
         res.json({
             ok: true,            
-            usuario: usuarioActualizado            
+            medico: medicoActualizado            
         });
         
     } catch (error) {
@@ -130,26 +130,26 @@ const actualizarUsuario = async(req, res = response) => {
 
 }
 
-const borrarUsuario = async(req,res = response) => {
+const borrarMedico = async(req,res = response) => {
     const uid = req.params.id;        
 
     try {
 
-        const usuarioDB = await Usuario.findById(uid);        
+        const medicoDB = await medico.findById(uid);        
 
-        //Comprueba si existe el usuario
-        if (!usuarioDB) {
+        //Comprueba si existe el medico
+        if (!medicoDB) {
             return res.status(404).json({
                 ok: false,
-                msg: "Este usuario no existe"
+                msg: "Este medico no existe"
             });
         }
 
-        await Usuario.findOneAndDelete(uid);
+        await medico.findOneAndDelete(uid);
 
         res.json({
             ok: true,
-            msg: "usuario borrado",                      
+            msg: "medico borrado",                      
 
         });
 
@@ -162,11 +162,9 @@ const borrarUsuario = async(req,res = response) => {
     }
 }
 
-
-
 module.exports={
-    getUsuarios,
-    crearUsuario,
-    actualizarUsuario,
-    borrarUsuario
+    getMedicos,
+    actualizarMedico,
+    crearMedico,
+    borrarMedico
 }

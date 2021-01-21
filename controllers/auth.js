@@ -7,9 +7,7 @@ const login = async(req, res = response) => {
 
     const  {email, password} = req.body;    
 
-    try {
-        
-        /*try {*/
+    try {             
             
             //verificar user
              const usuarioDB = await Usuario.findOne({email});
@@ -20,14 +18,8 @@ const login = async(req, res = response) => {
                     msg: "Algo esta mal con el usuario"
                 });
             }
-            
-        /*} catch (error) {
-            console.log('Error en el proceso de '+
-            'verificación de usuario------------');
-            console.log(error);
-        }*/
 
-        /*try {  */          
+                 
             //verificar contra                                  //de la BD cifrado compara
             const validPassword = bcrypt.compareSync(password, usuarioDB.password);
             if (!validPassword) {
@@ -35,13 +27,7 @@ const login = async(req, res = response) => {
                     ok: false,
                     msg: "Algo esta mal con la contraseña"
                 });
-            }
-
-        /*} catch (error) {
-            console.log('Error en el proceso de '+
-            'verificación de contraseña------------');
-            console.log(error);
-        }*/
+            }        
 
         //generar token = JWT
         const token = await generateJWT(usuarioDB.id);

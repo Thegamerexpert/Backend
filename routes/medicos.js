@@ -3,7 +3,7 @@ Ruta /api/usuarios
 */
 
 const {Router}= require('express');
-const {getUsuarios,crearUsuario,actualizarUsuario,borrarUsuario,} = require('../controllers/usuarios');
+const {getMedicos,borrarMedico,actualizarMedico,crearMedico} = require('../controllers/medicos');
 const {check} = require('express-validator');
 const {validarCampos}= require('../middlewares/validar-campos');
 const {validarJWT} = require('../middlewares/validar.jwt');
@@ -11,7 +11,7 @@ const {validarJWT} = require('../middlewares/validar.jwt');
 const router = Router();
 
 //res response server
-router.get('/',validarJWT, getUsuarios);
+router.get('/',validarJWT, getMedicos);
 
 //crear
 router.post('/',[
@@ -19,7 +19,7 @@ router.post('/',[
     check('password','El password es obligatorio').not().isEmpty(),
     check('email','El email es obligatorio').isEmail(), 
     validarCampos,   
-],crearUsuario);
+],crearMedico);
 
 //actualizar
 router.put('/:id',[
@@ -28,12 +28,12 @@ router.put('/:id',[
     check('email','El email es obligatorio').isEmail()/*
     check('role','El role es obligatorio').not().isEmpty()*/,
     validarCampos,
-    ],actualizarUsuario);
+    ],actualizarMedico);
 
 //borrar
 router.delete('/:id',[
     validarJWT,    
     validarCampos,   
-],borrarUsuario);
+],borrarMedico);
 
 module.exports = router;
