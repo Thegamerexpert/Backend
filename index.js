@@ -24,6 +24,7 @@ app.use('/api/hospitales',require('./routes/hospitales'));
 app.use('/api/login',require('./routes/auth'));
 app.use('/api/todo',require('./routes/busqueda'));
 app.use('/api/upload',require('./routes/uploads'));
+app.use('/api/renew',require('./routes/auth'));
 
 //listo para peticiones
 app.listen(process.env.PORT, () =>{

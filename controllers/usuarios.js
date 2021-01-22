@@ -56,7 +56,7 @@ const crearUsuario = async(req,res = response) =>{
         res.json({
             ok: true,     
             usuario: usuario,     //solo usuario
-            msg: "la clave: " + token
+            token
         });
 
     } catch (error) {
