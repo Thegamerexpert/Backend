@@ -1,39 +1,57 @@
 /*
-Ruta /api/usuarios
+    Medicos
+    ruta: '/api/medico'
 */
+const { Router } = require('express');
+const { check } = require('express-validator');
+const { validarCampos } = require('../middlewares/validar-campos');
 
-const {Router}= require('express');
-const {getMedicos,borrarMedico,actualizarMedico,crearMedico} = require('../controllers/medicos');
-const {check} = require('express-validator');
-const {validarCampos}= require('../middlewares/validar-campos');
-const {validarJWT} = require('../middlewares/validar.jwt');
+const { validarJWT } = require('../middlewares/validar.jwt');
+
+const {
+    getMedicos,
+    crearMedico,
+    actualizarMedico,
+    borrarMedico,
+    getMedicoById
+} = require('../controllers/medicos')
+
 
 const router = Router();
 
-//res response server
-router.get('/',validarJWT, getMedicos);
+router.get( '/', validarJWT, getMedicos );
 
-//crear
-router.post('/',[
-    check('nombre','El nombre es obligatorio').not().isEmpty(),
-    check('password','El password es obligatorio').not().isEmpty(),
-    check('email','El email es obligatorio').isEmail(), 
-    validarCampos,   
-],crearMedico);
+router.post( '/',
+    [
+        validarJWT,
+        check('nombre','El nombre del médico es necesario').not().isEmpty(),
+        check('hospital','El hospital id debe de ser válido').isMongoId(),
+        validarCampos
+    ], 
+    crearMedico 
+);
 
-//actualizar
-router.put('/:id',[
+router.put( '/:id',
+    [
+        validarJWT,
+        check('nombre','El nombre del médico es necesario').not().isEmpty(),
+        check('hospital','El hospital id debe de ser válido').isMongoId(),
+        validarCampos
+    ],
+    actualizarMedico
+);
+
+router.delete( '/:id',
     validarJWT,
-    check('nombre','El nombre es obligatorio').not().isEmpty(),
-    check('email','El email es obligatorio').isEmail()/*
-    check('role','El role es obligatorio').not().isEmpty()*/,
-    validarCampos,
-    ],actualizarMedico);
+    borrarMedico
+);
 
-//borrar
-router.delete('/:id',[
-    validarJWT,    
-    validarCampos,   
-],borrarMedico);
+router.get( '/:id',
+    validarJWT,
+    getMedicoById
+);
 
 module.exports = router;
+
+
+

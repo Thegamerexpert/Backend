@@ -34,8 +34,7 @@ const login = async(req, res = response) => {
         const token = await generateJWT(usuarioDB.id);
 
         res.json({
-            ok: true,
-            msg: "Viva el trap y las lolis",
+            ok: true,            
             token
         });
 
@@ -57,9 +56,12 @@ const renewToken = async(req, res = response) => {
     //generar token = JWT
     const token = await generateJWT(uid);
 
+    const usuario = await Usuario.findById(uid);
+
     res.json({
+        //devuelve yoken y uid
         ok: true,
-        uid:  uid,
+        usuario:  usuario,
         token
     });
 }

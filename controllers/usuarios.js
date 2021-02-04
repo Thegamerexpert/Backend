@@ -1,3 +1,4 @@
+require('dotenv').config();
 //const { model } = require("mongoose");
 const Usuario = require('../models/usuario');
 const {response} = require('express');
@@ -10,14 +11,32 @@ const getUsuarios = async(req,res) =>{
     //Muestra solicitud cliente
     console.log(req.body);
 
+    //Paginacion
+    const desde = Number(req.query.desde) || 0;
+    //Limite de resultados
+        //NUmber requerido para reconocerlo como numero
+    const limite = Number(process.env.LIMITERESULTADO);
+    //console.log(desde);
+    
+    //Metodo lento dependiendo de cantidad de registros en bd
+    //Total de registros
+    //const total = await  Usuario.count();
+    
     //busca todos los usuarios
-    const usuarios = await Usuario.find({},'nombre email role google img');
+    //const usuarios = await Usuario.find({},'nombre email role google img')
+    //.skip(desde).limit(limite);
+    
+    const [usuarios, total] = await Promise.all([
+        Usuario.find({},'nombre email role google img').skip(desde).limit(limite),
+        Usuario.count()       
+    ]);
 
     //respuesta servidor
     res.json({
         ok: true,               
         usuarios: usuarios,
-        uid: req.uid        
+        total: total,
+        uid: req.uid,                      
     });
 
 }
@@ -58,6 +77,7 @@ const crearUsuario = async(req,res = response) =>{
             usuario: usuario,     //solo usuario
             token
         });
+        console.log("Se creo el usuario:")
 
     } catch (error) {
         console.log(error);
@@ -72,7 +92,7 @@ const crearUsuario = async(req,res = response) =>{
 
 const actualizarUsuario = async(req, res = response) => {
 
-    const uid = req.params.header;    
+    const uid = req.params.id;        
 
     try {
 
@@ -83,7 +103,7 @@ const actualizarUsuario = async(req, res = response) => {
         if (!usuarioDB) {
             return res.status(404).json({
                 ok: false,
-                msg: "No tiene la autoridad para modicar otros usuarios"
+                msg: "No se pudo obtener el usuario, parece que no existe"
             });
         }
 
@@ -114,6 +134,7 @@ const actualizarUsuario = async(req, res = response) => {
 
         const usuarioActualizado = await Usuario.findByIdAndUpdate(uid,campos,{new: true});
 
+        console.log("El usuario: "+uid+" Actualizo a: "+usuarioActualizado);
         res.json({
             ok: true,            
             usuario: usuarioActualizado            
@@ -161,8 +182,6 @@ const borrarUsuario = async(req,res = response) => {
         });
     }
 }
-
-
 
 module.exports={
     getUsuarios,

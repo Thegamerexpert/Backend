@@ -1,5 +1,5 @@
-const Hospital = require('../models/hospitales');
-const Medico = require('../models/medicos');
+const Hospital = require('../models/hospital');
+const Medico = require('../models/medico');
 const Usuario = require('../models/usuario');
 const fs = require('fs');
 

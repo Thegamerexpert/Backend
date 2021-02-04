@@ -1,170 +1,154 @@
-//const { model } = require("mongoose");
-const Medico = require('../models/medicos');
-const {response} = require('express');
-const bcrypt = require('bcryptjs');
-//const { userInfo } = require("os");
-const {generateJWT} = require('../helpers/jwt');
+const { response } = require('express');
 
-const getMedicos = async(req,res) =>{
+const Medico = require('../models/medico');
 
-    //Muestra solicitud cliente
-    console.log(req.body);
+const getMedicos = async(req, res = response) => {
 
-    //busca todos los medicos
-    const medicos = await Medico.find({},'nombre email role google img');
+    const medicos = await Medico.find()
+                                .populate('usuario','nombre img')
+                                .populate('hospital','nombre img')
 
-    //respuesta servidor
+
     res.json({
-        ok: true,               
-        medicos: medicos,
-        uid: req.uid        
-    });
-
+        ok: true,
+        medicos
+    })
 }
 
-const crearMedico = async(req,res = response) =>{
+const getMedicoById = async(req, res = response) => {
 
-    //Muestra solicitud cliente
-    console.log(req.body);
+    const id = req.params.id;
 
-    const {email, password}= req.body;
+    try {
+        const medico = await Medico.findById(id)
+                                    .populate('usuario','nombre img')
+                                    .populate('hospital','nombre img');
     
+        res.json({
+            ok: true,
+            medico
+        })
+        
+    } catch (error) {
+        console.log(error);
+        res.json({
+            ok: true,
+            msg: 'Hable con el administrador, no se encontro'
+        })
+    }
+}
+
+const crearMedico = async (req, res = response) => {
+
+    const uid = req.uid;
+    const medico = new Medico({
+        usuario: uid,
+        ...req.body
+    });
+
+
     try {
 
-        const nuevoMedico = await Medico.findOne({email});
+        const medicoDB = await medico.save();
 
-        if (nuevoMedico) {
-            return res.status(400).json({
-                ok: false,
-                msg:"El correo ya existe"
-            });
-        }
-
-        const medico = new Medico (req.body);
-
-        //encriptar contra
-        const salt = bcrypt.genSaltSync();
-        medico.password = bcrypt.hashSync(password,salt);
-
-        //guardar medico
-        await medico.save();
-
-        //token import
-        const token = await generateJWT(medico.id);
-
-        //respuesta servidor
+        
         res.json({
-            ok: true,     
-            medico: medico,     //solo medico
-            msg: "la clave: " + token
-        });
+            ok: true,
+            medico: medicoDB
+        })
 
     } catch (error) {
         console.log(error);
         res.status(500).json({
             ok: false,
-            msg: "Error desconocido revisar logs"
-        });
+            msg: 'Hable con el administrador'
+        })
     }
 
-    
+
 }
 
 const actualizarMedico = async(req, res = response) => {
-
-    const uid = req.params.header;    
+    
+    const id  = req.params.id;
+    const uid = req.uid;
 
     try {
-
-        const medicoDB = await Medico.findById(uid);
         
+        const medico = await Medico.findById( id );
 
-        //Comprueba si existe el medico
-        if (!medicoDB) {
+        if ( !medico ) {
             return res.status(404).json({
-                ok: false,
-                msg: "No tiene la autoridad para modicar otros medicos"
+                ok: true,
+                msg: 'Medico no encontrado por id',
             });
         }
 
-        //Actualizar
-        //Crea una constante de la solicitud
-
-        //Extrae los campos solicitados
-        const {password,google,email,...campos} = req.body;
-
-        //comprueba si se cambia el email
-        if (medicoDB.email !== email) {
-            
-            const existeEmail = await medico.findOne({email});
-            if (existeEmail) {
-                return res.status(400).json({
-                    ok: false,
-                    msg: "Ya existe un medico con este email"
-                });
-            }
+        const cambiosMedico = {
+            ...req.body,
+            usuario: uid
         }
 
-        //Especifica el campo
-        campos.email = email;
+        const medicoActualizado = await Medico.findByIdAndUpdate( id, cambiosMedico, { new: true } );
 
-        //Borra los campos solicitados
-        /*delete campos.password;
-        delete campos.google;*/
-
-        const medicoActualizado = await medico.findByIdAndUpdate(uid,campos,{new: true});
-
-        res.json({
-            ok: true,            
-            medico: medicoActualizado            
-        });
-        
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            msg: "error inesperado"
-        });
-
-    }
-
-}
-
-const borrarMedico = async(req,res = response) => {
-    const uid = req.params.id;        
-
-    try {
-
-        const medicoDB = await medico.findById(uid);        
-
-        //Comprueba si existe el medico
-        if (!medicoDB) {
-            return res.status(404).json({
-                ok: false,
-                msg: "Este medico no existe"
-            });
-        }
-
-        await medico.findOneAndDelete(uid);
 
         res.json({
             ok: true,
-            msg: "medico borrado",                      
-
-        });
+            medico: medicoActualizado
+        })
 
     } catch (error) {
+
         console.log(error);
-        res.status(501).json({
+
+        res.status(500).json({
             ok: false,
-            msg: "Error al borrar"
-        });
+            msg: 'Hable con el administrador'
+        })
     }
+
 }
 
-module.exports={
+const borrarMedico = async (req, res = response) => {
+   
+    const id  = req.params.id;
+
+    try {
+        
+        const medico = await Medico.findById( id );
+
+        if ( !medico ) {
+            return res.status(404).json({
+                ok: true,
+                msg: 'Medico no encontrado por id',
+            });
+        }
+
+        await Medico.findByIdAndDelete( id );
+
+        res.json({
+            ok: true,
+            msg: 'Médico borrado'
+        }); 
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        })
+    }
+
+}
+
+
+
+module.exports = {
     getMedicos,
-    actualizarMedico,
     crearMedico,
-    borrarMedico
+    actualizarMedico,
+    borrarMedico,
+    getMedicoById
 }

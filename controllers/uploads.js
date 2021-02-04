@@ -67,11 +67,11 @@ const fileUpload = (req,res = response) => {
     //respuesta servidor
     res.json({
         ok: true,
-        msg: 'file uploaded: ',
+        msg: 'file uploaded: true',
          nombreArchivo
     });
 
-
+    console.log("subiendo imagen: " + nombreArchivo);
 });
 
 }
